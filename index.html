@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>generation-widget dev harness</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 480px; margin: 3rem auto; padding: 1rem; }
+    h2   { margin-bottom: 1.5rem; }
+
+    .widget-wrapper {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      min-height: 60px;
+    }
+
+    .controls { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+    button {
+      padding: 0.4rem 0.9rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      background: #f5f5f5;
+    }
+    button:hover { background: #e8e8e8; }
+
+    .log {
+      font-size: 0.8rem;
+      font-family: monospace;
+      background: #f9f9f9;
+      border: 1px solid #eee;
+      border-radius: 6px;
+      padding: 0.75rem;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .log-entry { margin: 0.15rem 0; }
+
+    generation-widget::part(thought-item-0) {
+        opacity: 1;
+        font-size: 1rem;
+        font-weight: 400;
+    }
+
+    generation-widget::part(thought-item-1) {
+        opacity: 0.60;
+        font-size: 1rem;
+        font-weight: 400;
+    }
+
+    generation-widget::part(thought-item-2) {
+        opacity: 0.30;
+        font-size: 1rem;
+        font-weight: 400;
+    }
+
+  </style>
+</head>
+<body>
+
+  <h2>generation-widget dev harness</h2>
+
+  <!--
+    Required attributes: app-key
+    Optional:  host (default: realtime.simplified.travel), port (default: 6001),
+               channel (default: generation), force-tls (default: true),
+               auth-endpoint, show-thoughts, show-progress, thought-count
+  -->
+  <div class="widget-wrapper">
+    <generation-widget
+      id="widget"
+      app-key="eaPPxag89nwvCJ6oa4yepwxF"
+      channel="plans.01kk7wygs5v74z9hexcy76vy0c"
+    ></generation-widget>
+  </div>
+
+  <p style="font-size:0.85rem;color:#888;margin-bottom:0.75rem">
+    Simulate server events without a real WebSocket connection:
+  </p>
+
+  <div class="controls">
+    <button onclick="simulate('started')">▶ started</button>
+    <button onclick="simulateThought()">💬 thought</button>
+    <button onclick="simulateProgress()">📊 progress</button>
+    <button onclick="simulate('done')">✓ done</button>
+  </div>
+
+  <div class="log" id="log"></div>
+
+  <script type="module">
+    import { GenerationWidget } from '/src/index.js'
+
+    const widget = document.getElementById('widget')
+
+    // ── External event listeners ─────────────────────────────────
+    widget
+      .on('document.generation.event',    d => log('generation.event',    d))
+      .on('document.generation.thought',  d => log('generation.thought',  d))
+      .on('document.generation.progress', d => log('generation.progress', d))
+      .on('widget:connected',             ()=> log('widget:connected'))
+      .on('widget:disconnected',          ()=> log('widget:disconnected'))
+      .on('widget:error',                 e => log('widget:error', e))
+
+    // ── Simulation helpers ────────────────────────────────────────
+    // These call internal methods directly to simulate WS events
+    // in the dev harness (no real Pusher connection required).
+    let progressValue = 0
+    const thoughts = [
+      'Examining document structure',
+      'Analysing section headings',
+      'Reviewing table of contents',
+      'Checking references',
+      'Validating formatting',
+      'Generating outline',
+    ]
+
+    window.simulate = function (type) {
+      widget._handleMessage('document.generation.event', { type })
+      if (type === 'started') progressValue = 0
+    }
+
+    window.simulateThought = function () {
+      const content = thoughts[Math.floor(Math.random() * thoughts.length)]
+      widget._handleMessage('document.generation.thought', { content })
+    }
+
+    window.simulateProgress = function () {
+      progressValue = Math.min(100, progressValue + Math.floor(Math.random() * 20) + 5)
+      widget._handleMessage('document.generation.progress', { content: progressValue })
+    }
+
+    function log(event, data) {
+      const el    = document.getElementById('log')
+      const entry = document.createElement('div')
+      entry.className = 'log-entry'
+      entry.textContent = `[${new Date().toLocaleTimeString()}] ${event}` +
+        (data !== undefined ? ` → ${JSON.stringify(data)}` : '')
+      el.prepend(entry)
+    }
+  </script>
+
+</body>
+</html>
