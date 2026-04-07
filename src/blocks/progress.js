@@ -21,7 +21,7 @@ export class ProgressBlock {
         const clamped = Math.min(100, Math.max(0, Math.round(pct)))
         this._current = clamped
         this._barFill.style.width = `${clamped}%`
-        this._label.textContent = `${clamped}%`
+        if (this._label) this._label.textContent = `${clamped}%`
     }
 
     reset() {

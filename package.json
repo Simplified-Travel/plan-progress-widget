@@ -1,15 +1,28 @@
 {
-    "name": "generation-widget",
+    "name": "@simplified-travel/plan-progress-widget",
     "version": "1.0.0",
     "type": "module",
+    "main": "src/index.js",
+    "module": "src/index.js",
+    "exports": {
+        ".": "./src/index.js"
+    },
+    "files": [
+        "src"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Simplified-Travel/plan-progress-widget.git"
+    },
     "scripts": {
         "dev": "vite",
         "build": "vite build",
         "preview": "vite preview"
     },
     "dependencies": {
-        "pusher-js": "^8.4.0",
-        "@webcomponents/webcomponentsjs": "^2.8.0"
+        "@webcomponents/webcomponentsjs": "^2.8.0",
+        "generation-widget": "github:Simplified-Travel/plan-progress-widget",
+        "pusher-js": "^8.4.0"
     },
     "devDependencies": {
         "vite": "^5.0.0"

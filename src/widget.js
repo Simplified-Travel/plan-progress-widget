@@ -54,35 +54,35 @@ template.innerHTML = `
    * ::part() selectors inside the shadow root use the same syntax
    * as external stylesheets, making the defaults self-documenting.
    */
-  ::part(thought-item) {
+  [part~="thought-item"] {
     line-height: 1.45;
     padding: 0.2em 0;
     transition: opacity 0.4s ease, font-size 0.3s ease;
   }
- 
+
   /* Most recent thought — full prominence */
-  ::part(thought-item-0) {
+  [part~="thought-item-0"] {
     opacity: 1;
     font-size: 0.9rem;
     font-weight: 500;
   }
- 
+
   /* Second thought — noticeably reduced */
-  ::part(thought-item-1) {
+  [part~="thought-item-1"] {
     opacity: 0.45;
     font-size: 0.82rem;
     font-weight: 400;
   }
- 
+
   /* Third thought and beyond — faded out */
-  ::part(thought-item-2),
-  ::part(thought-item-3),
-  ::part(thought-item-4),
-  ::part(thought-item-5),
-  ::part(thought-item-6),
-  ::part(thought-item-7),
-  ::part(thought-item-8),
-  ::part(thought-item-9) {
+  [part~="thought-item-2"],
+  [part~="thought-item-3"],
+  [part~="thought-item-4"],
+  [part~="thought-item-5"],
+  [part~="thought-item-6"],
+  [part~="thought-item-7"],
+  [part~="thought-item-8"],
+  [part~="thought-item-9"] {
     opacity: 0.2;
     font-size: 0.78rem;
     font-weight: 400;
@@ -95,23 +95,23 @@ template.innerHTML = `
     gap: 0.6rem;
   }
  
-  ::part(progress-track) {
+  .progress-track {
     flex: 1;
     height: 6px;
     background: rgba(0, 0, 0, 0.1);
     border-radius: 999px;
     overflow: hidden;
   }
- 
-  ::part(progress-fill) {
+
+  .progress-fill {
     height: 100%;
     width: 0%;
     background: currentColor;
     border-radius: 999px;
     transition: width 0.35s ease;
   }
- 
-  ::part(progress-label) {
+
+  .progress-label {
     font-size: 0.8rem;
     min-width: 2.8rem;
     text-align: right;

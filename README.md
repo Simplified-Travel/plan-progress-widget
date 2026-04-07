@@ -1,12 +1,22 @@
-# generation-widget
+# Plan Progress Widget
 
 A drop-in Web Component that gives users real-time feedback while the Simplified Travel API generates a plan. When you call the API to generate a plan, this widget connects over WebSockets and displays live progress updates — thoughts the system is working through and a progress bar — so your users aren't left staring at a blank screen.
 
 ## Installation
 
+Install directly from GitHub:
+
 ```bash
-npm install generation-widget
+npm install github:Simplified-Travel/plan-progress-widget
 ```
+
+Or pin to a specific tag, branch, or commit:
+
+```bash
+npm install github:Simplified-Travel/plan-progress-widget#v1.0.0
+```
+
+This adds the package to your `package.json` as `@simplified-travel/plan-progress-widget`, which is the name you'll use when importing it in code.
 
 ## Quick start
 
@@ -14,7 +24,7 @@ Import the widget module (this registers the `<generation-widget>` custom elemen
 
 ```html
 <script type="module">
-  import 'generation-widget'
+  import '@simplified-travel/plan-progress-widget'
 </script>
 
 <generation-widget
@@ -23,7 +33,145 @@ Import the widget module (this registers the `<generation-widget>` custom elemen
 ></generation-widget>
 ```
 
-That's it. The widget stays hidden until a generation starts, shows progress as it runs, and hides again when it finishes.
+That's it. The widget stays hidden until plan generation starts, shows progress as it runs, and hides again when it finishes.
+
+### Using the widget in a Vue.js application
+
+Because the widget is a standard Web Component, you can use it directly in a Vue template — Vue treats unknown elements as native HTML, so no wrapper is needed. Import the package once (typically in your `main.js`) so the custom element is registered globally:
+
+```js
+// main.js
+import { createApp } from 'vue'
+import App from './App.vue'
+import '@simplified-travel/plan-progress-widget'
+
+createApp(App).mount('#app')
+```
+
+If you're using Vue 3 with a build step, tell the compiler to treat `generation-widget` as a custom element so it doesn't warn about an unknown component. In `vite.config.js`:
+
+```js
+import vue from '@vitejs/plugin-vue'
+
+export default {
+  plugins: [
+    vue({
+      template: {
+        compilerOptions: {
+          isCustomElement: (tag) => tag === 'generation-widget',
+        },
+      },
+    }),
+  ],
+}
+```
+
+Then use it in any component, binding the `channel` attribute to your current plan ID and listening to events via a template ref:
+
+```vue
+<script setup>
+import { ref, onMounted, onBeforeUnmount } from 'vue'
+
+const props = defineProps({
+  planId: { type: String, required: true },
+})
+
+const widgetRef = ref(null)
+
+const onStarted = (data) => console.log('Generation', data.type)
+const onThought = (data) => console.log('Thought:', data.content)
+const onProgress = (data) => console.log('Progress:', data.content, '%')
+
+onMounted(() => {
+  widgetRef.value
+    .on('document.generation.event', onStarted)
+    .on('document.generation.thought', onThought)
+    .on('document.generation.progress', onProgress)
+})
+
+onBeforeUnmount(() => {
+  widgetRef.value
+    ?.off('document.generation.event', onStarted)
+    ?.off('document.generation.thought', onThought)
+    ?.off('document.generation.progress', onProgress)
+})
+</script>
+
+<template>
+  <generation-widget
+    ref="widgetRef"
+    app-key="YOUR_PUSHER_APP_KEY"
+    :channel="`plans.${planId}`"
+  />
+</template>
+```
+
+Note that `:channel` uses Vue's attribute binding syntax so the channel updates reactively whenever `planId` changes — the widget will tear down its existing WebSocket connection and reconnect to the new channel automatically.
+
+### Using the widget in a Nuxt.js application
+
+Nuxt builds on Vue, so the integration is similar — but because Nuxt renders pages on the server by default, you need to make sure the widget only loads in the browser (Web Components, WebSockets, and `customElements.define` all require a DOM).
+
+**1. Tell the Vue compiler to treat `generation-widget` as a custom element.** In `nuxt.config.ts`:
+
+```ts
+export default defineNuxtConfig({
+  vue: {
+    compilerOptions: {
+      isCustomElement: (tag) => tag === 'generation-widget',
+    },
+  },
+})
+```
+
+**2. Register the custom element on the client only.** Create a client-side plugin at `plugins/plan-progress-widget.client.ts` (the `.client` suffix tells Nuxt to skip it during SSR):
+
+```ts
+export default defineNuxtPlugin(async () => {
+  await import('@simplified-travel/plan-progress-widget')
+})
+```
+
+**3. Use the widget inside `<ClientOnly>`** so Nuxt doesn't try to render it on the server. In any page or component:
+
+```vue
+<script setup lang="ts">
+import { ref, onMounted, onBeforeUnmount } from 'vue'
+
+const props = defineProps<{ planId: string }>()
+const widgetRef = ref<any>(null)
+
+const onStarted  = (data: any) => console.log('Generation', data.type)
+const onThought  = (data: any) => console.log('Thought:', data.content)
+const onProgress = (data: any) => console.log('Progress:', data.content, '%')
+
+onMounted(() => {
+  widgetRef.value
+    ?.on('document.generation.event',    onStarted)
+    ?.on('document.generation.thought',  onThought)
+    ?.on('document.generation.progress', onProgress)
+})
+
+onBeforeUnmount(() => {
+  widgetRef.value
+    ?.off('document.generation.event',    onStarted)
+    ?.off('document.generation.thought',  onThought)
+    ?.off('document.generation.progress', onProgress)
+})
+</script>
+
+<template>
+  <ClientOnly>
+    <generation-widget
+      ref="widgetRef"
+      app-key="YOUR_PUSHER_APP_KEY"
+      :channel="`plans.${planId}`"
+    />
+  </ClientOnly>
+</template>
+```
+
+The `<ClientOnly>` wrapper ensures the element is only mounted in the browser, which avoids SSR errors like `customElements is not defined`.
 
 ## Attributes
 
@@ -138,8 +286,8 @@ widget
 
 | Event | Data | Description |
 |-------|------|-------------|
-| `document.generation.event` | `{ type: "started" \| "done" }` | Generation lifecycle. The widget shows itself on `started` and hides on `done`. |
-| `document.generation.thought` | `{ content: string }` | A status message from the generation process. |
+| `document.generation.event` | `{ type: "started" \| "done" }` | Plan generation lifecycle. The widget shows itself on `started` and hides on `done`. |
+| `document.generation.thought` | `{ content: string }` | A status message from the plan generation process. |
 | `document.generation.progress` | `{ content: number }` | Progress percentage (0–100). |
 | `widget:connected` | — | WebSocket connection established. |
 | `widget:disconnected` | — | WebSocket connection lost. |
