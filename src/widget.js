@@ -9,7 +9,9 @@ let _instance = null
 const EVENT_GENERATION = 'document.generation.event'
 const EVENT_THOUGHT = 'document.generation.thought'
 const EVENT_PROGRESS = 'document.generation.progress'
-const TRACKED_EVENTS = [EVENT_GENERATION, EVENT_THOUGHT, EVENT_PROGRESS]
+const EVENT_ACTIVITY = 'activity.generated'
+const EVENT_LIST = 'list.generated'
+const TRACKED_EVENTS = [EVENT_GENERATION, EVENT_THOUGHT, EVENT_PROGRESS, EVENT_ACTIVITY, EVENT_LIST]
 
 // ─── Shadow DOM template ─────────────────────────────────────────────────────
 // Built once, cloned per instance (there will only ever be one, but this
@@ -206,6 +208,8 @@ export class GenerationWidget extends HTMLElement {
      *   'document.generation.event'    — { type: 'started' | 'done' }
      *   'document.generation.thought'  — { content: string }
      *   'document.generation.progress' — { content: number }
+     *   'activity.generated'           — arbitrary JSON object (passed through as-is)
+     *   'list.generated'               — arbitrary JSON object (passed through as-is)
      *   'widget:connected'             — no data
      *   'widget:disconnected'          — no data
      *   'widget:error'                 — error object

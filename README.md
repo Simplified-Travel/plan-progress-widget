@@ -277,6 +277,13 @@ widget
   .on('document.generation.progress', (data) => {
     console.log('Progress:', data.content, '%')
   })
+  .on('activity.generated', (data) => {
+    // The full event payload is passed through as-is
+    console.log('Activity generated:', data)
+  })
+  .on('list.generated', (data) => {
+    console.log('List generated:', data)
+  })
   .on('widget:connected', () => console.log('WebSocket connected'))
   .on('widget:disconnected', () => console.log('WebSocket disconnected'))
   .on('widget:error', (err) => console.error('Widget error:', err))
@@ -289,6 +296,8 @@ widget
 | `document.generation.event` | `{ type: "started" \| "done" }` | Plan generation lifecycle. The widget shows itself on `started` and hides on `done`. |
 | `document.generation.thought` | `{ content: string }` | A status message from the plan generation process. |
 | `document.generation.progress` | `{ content: number }` | Progress percentage (0–100). |
+| `activity.generated` | JSON object | Fired whenever the server emits a generated activity. The full event payload is passed through to the listener as-is. |
+| `list.generated` | JSON object | Fired whenever the server emits a generated list. The full event payload is passed through to the listener as-is. |
 | `widget:connected` | — | WebSocket connection established. |
 | `widget:disconnected` | — | WebSocket connection lost. |
 | `widget:error` | Error object | Connection or subscription error. |
