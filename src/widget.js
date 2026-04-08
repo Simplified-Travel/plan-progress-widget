@@ -100,7 +100,7 @@ template.innerHTML = `
   .progress-track {
     flex: 1;
     height: 6px;
-    background: rgba(0, 0, 0, 0.1);
+    background: rgba(100, 100, 100, 0.5);
     border-radius: 999px;
     overflow: hidden;
   }
